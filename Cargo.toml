@@ -1,8 +1,20 @@
 [package]
-name = "porridge-client"
+name = "porridge_client"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+pyo3 = { version = "0.18.0", features = [
+    "extension-module",
+    "auto-initialize",
+] }
+uuid = { version = "1.8.0", features = ["serde", "v4"] }
+serde = { version = "1.0", features = ["derive"] }
+reqwest = { version = "0.12.4", features = ["json"] }
+tokio = { version = "1", features = ["full"] }
+
+[lib]
+name = "porridge_client"
+crate-type = ["cdylib"]
