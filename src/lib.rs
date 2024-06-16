@@ -1,10 +1,9 @@
 use pyo3::prelude::*;
-use reqwest::{Client, Request, Response};
-use serde::Serialize;
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
+use pyo3::types::PyDict;
+use reqwest::Client;
+use serde::{Deserialize, Serialize};
+use std::sync::Mutex;
 use tokio::runtime::Runtime;
-use uuid::Uuid;
 type Embedding = Vec<f32>;
 
 const SEARCH_ENDPOINT: &str = "/search";
@@ -13,10 +12,19 @@ const RETRIEVE_ENDPOINT: &str = "/retrieve";
 const HEARTBEAT_ENDPOINT: &str = "/heartbeat";
 
 #[pyclass]
-#[derive(Clone, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct EmbeddingEntry {
     pub embeddings: Embedding,
     pub text: String,
+}
+
+impl<'source> FromPyObject<'source> for EmbeddingEntry {
+    fn extract(obj: &'source PyAny) -> PyResult<Self> {
+        let dict: &PyDict = obj.downcast()?;
+        let embeddings: Embedding = dict.get_item("embeddings").unwrap().extract()?;
+        let text: String = dict.get_item("text").unwrap().extract()?;
+        Ok(EmbeddingEntry { embeddings, text })
+    }
 }
 
 #[pyclass]
@@ -92,7 +100,7 @@ impl PorridgeClient {
 }
 
 #[pymodule]
-fn porridge_client(py: Python, m: &PyModule) -> PyResult<()> {
+fn porridge_client(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PorridgeClient>()?;
     Ok(())
 }
